@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="calculator.js"  type="text/javascript"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Leverage Calculator</h1>
+
+<form onsubmit="calculateLeverage();">
+    <div class="input-label">Nuvarande totalbelopp kr</div>
+    <input id="currentTotalAmountTbox" type="number" />
+
+    <div class="input-label">Nuvarande gräns superräntan</div>
+    <input id="currentSuperRantaTbox" type="number" />
+
+    <div class="input-label">Nuvarande gräns överbelånad kr</div>
+    <input id="currentOverLeveragedTbox" type="number" />
+
+    <div class="input-label">Önskad belåningsgrad %</div>
+    <input id="targetLeverageTbox" type="number" />
+
+    <div class="input-label">Belåningsvärde nya värdepapper %</div>
+    <input id="leverageValueTbox" type="number" />
+
+    <div>
+        <button type="submit">Beräkna</button>
+    </div>
+</form>
+
+<div>
+    <h2>Resultat</h2>
+    
+</div>
+
+</body>
+</html>
