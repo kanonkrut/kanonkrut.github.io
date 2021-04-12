@@ -154,25 +154,45 @@ function getRantaAsFactor(ranta) {
 
 function calculateLeverage() {
     document.getElementById("resultContainer").innerHTML = "";
+
     var currentTotalAmountSuperRanta = calculateTotalAmountWithSuperRanta();
+
     var targetLeveragePercent = getTargetLeverage();
+
     var totalAmount = getCurrentTotalAmount();
+
     var targetLeverageAmountIfFullSuperRanta = calculateLeverageAmountForTargetLeverage(totalAmount);
+
     var targetLeverageAmount = calculateLeverageAmountForTargetLeverage(currentTotalAmountSuperRanta);
+
     var extraLeverageFullSuperRanta = targetLeverageAmountIfFullSuperRanta - targetLeverageAmount;
+
     var currentLeverageAmount = getCurrentLeverageAmountValue();
+
     var amountToInvest = targetLeverageAmount - currentLeverageAmount;
+
     var currentTotalAmount = getCurrentTotalAmount();
+
     var newTotalAmount = amountToInvest + currentTotalAmount;
+
     var newTotalAmountSuperRanta = currentTotalAmountSuperRanta + amountToInvest;
+
     var newTotalAmountSecondBestInterest = newTotalAmountSuperRanta / 2;
+
     var newTotalAmountBestInterest = newTotalAmountSuperRanta / 5;
+
     var currentTotalAmountSecondBestInterest = currentTotalAmountSuperRanta / 2;
+
     var currentTotalAmountBestInterest = currentTotalAmountSuperRanta / 5;
+
     var diffNewAndCurrentBestInterest = newTotalAmountBestInterest - currentTotalAmountBestInterest;
+
     var diffNewAndSecondCurrentBestInterest = newTotalAmountSecondBestInterest - currentTotalAmountSecondBestInterest;
+
     var diffTotalAmountSuperRanta = newTotalAmountSuperRanta - currentTotalAmountSuperRanta;
+
     var egetKapital = totalAmount - currentLeverageAmount;
+
     var newLeverageMultiplier = newTotalAmount / egetKapital;
 
     var bestInterest = getBestInterest();
@@ -184,13 +204,34 @@ function calculateLeverage() {
     var ordinarieInterest = getOrdinarieInterest();
 
     var rantaBasedOnTargetLeverage = getRantaBasedOnTargetLeverage(targetLeveragePercent);
+
     var rantaBasedOnTargetLeverageFactor = getRantaAsFactor(rantaBasedOnTargetLeverage);
 
     var yearlyInterestCost = targetLeverageAmount * rantaBasedOnTargetLeverageFactor;
+
+    var yearlyInterestCostAfterDeduction = yearlyInterestCost * 0.7;
+
     var dailyInterestCost = yearlyInterestCost / 365;
 
-    printNewResultSection("Översikt");
+    var avkastningEgetKapital5 = egetKapital * 0.05;
 
+    var avkastningEgetKapital10 = egetKapital * 0.1;
+
+    var avkastningEgetKapital15 = egetKapital * 0.15;
+
+    var avkastningBelaning5 = targetLeverageAmount * 0.05;
+
+    var avkastningBelaning10 = targetLeverageAmount * 0.1;
+
+    var avkastningBelaning15 = targetLeverageAmount * 0.15;
+
+    var avkastningTotal5 = newTotalAmount * 0.05;
+
+    var avkastningTotal10 = newTotalAmount * 0.1;
+
+    var avkastningTotal15 = newTotalAmount * 0.15;
+
+    printNewResultSection("Översikt");
     printSekLabel(newTotalAmount, "Nytt totalbelopp");
     printSekLabel(targetLeverageAmount, "Möjlig total belåning");
     printDecimalLabel(newLeverageMultiplier, "Möjlig hävstång");
@@ -220,13 +261,28 @@ function calculateLeverage() {
 
     printSekLabel(0, "Nytt tak " + ordinarieInterest + "% ränta");
     printSekLabel(0, "Nuvarande tak " + ordinarieInterest + "% ränta");
-    printSekLabel(0 , "Diff");
-    printNewRow();
+    printSekLabel(0, "Diff");
 
     printNewResultSection("Kostnader");
     printDecimalLabel(rantaBasedOnTargetLeverage, "Ränta %");
     printSekLabel(yearlyInterestCost, "Räntekostnad per år");
+    printSekLabel(yearlyInterestCostAfterDeduction, "Räntekostnad per år efter ränteavdrag");
     printSekLabel(dailyInterestCost, "Räntekostnad per dag");
+
+    printNewResultSection("Avkastning");
+    printSekLabel(avkastningBelaning5, "Vid 5% belåning");
+    printSekLabel(avkastningEgetKapital5, "Vid 5% utan belåning");
+    printSekLabel(avkastningTotal5, "Vid 5% totalt");
+    printNewRow();
+
+    printSekLabel(avkastningBelaning10, "Vid 10% belåning");
+    printSekLabel(avkastningEgetKapital10, "Vid 10% utan belåning");
+    printSekLabel(avkastningTotal10, "Vid 10% totalt");
+    printNewRow();
+
+    printSekLabel(avkastningBelaning15, "Vid 15% belåning");
+    printSekLabel(avkastningEgetKapital15, "Vid 15% utan belåning");
+    printSekLabel(avkastningTotal15, "Vid 15% totalt");
 
     return false;
 }
