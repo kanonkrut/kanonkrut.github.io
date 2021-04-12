@@ -16,16 +16,16 @@
     <input id="currentLeverageAmountTbox" class="formatted" type="number" value="70000" />
 
     <div class="input-label">Nuvarande gräns superräntan</div>
-    <input id="currentSuperRantaTbox" class="formatted" type="number" />
+    <input id="currentSuperRantaTbox" class="formatted" type="number" value="172000" />
 
     <div class="input-label">Nuvarande gräns överbelånad kr</div>
-    <input id="currentOverLeveragedTbox" type="number" />
+    <input id="currentOverLeveragedTbox" type="number" value="301000" />
 
     <div class="input-label">Önskad belåningsgrad %</div>
     <input id="targetLeverageTbox" type="number" value="30" />
 
     <div class="input-label">Belåningsvärde nya värdepapper %</div>
-    <input id="leverageValueTbox" type="number" />
+    <input id="leverageValueTbox" type="number" value="80" />
 
     <div>
         <button type="submit">Beräkna</button>
@@ -34,10 +34,14 @@
 
 <div>
     <h2>Resultat</h2>
-
-    <div id="newTotalAmountLabel"></div>
+    <div id="currentTotalAmountSuperRantaLabel"></div>
+    <div id="newTotalAmountLabel"></div>    
     <div id="targetLeverageAmountLabel"></div>
     <div id="amountToInvestLabel"></div>
+
+    <div id="bestInterestLevelLabel"></div>
+    <div id="secondBestLevelLabel"></div>
+    <div id="superRantaLevelLabel"></div>
 </div>
 
 <script src="calculator.js"  type="text/javascript"></script>
