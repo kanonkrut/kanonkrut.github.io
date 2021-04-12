@@ -1,3 +1,5 @@
+
+
 function getInputValueAsNumber(inputId) {
     var value = document.getElementById(inputId).value;
     return parseInt(value);
@@ -23,17 +25,49 @@ function getLeverageValue() {
     return getInputValueAsNumber("leverageValueTbox");
 }
 
-function calculateLeverageInSEK() {
-    var totalAmount = getCurrentTotalAmount();
-    var leverageSek = 0;
+function getCurrentLeverageAmountValue() {
+    return getInputValueAsNumber("currentLeverageAmountTbox");
+}
 
-    while(true) {
+function calculateLeverageAmountForTargetLeverage() {
+    var currentTotalAmount = getCurrentTotalAmount();
+    var targetLeverage = getTargetLeverage();
+    var targetLeverageFactor = targetLeverage / 100;
 
+    var leverageAmount = 0;
+    var lastLeveragableAmount = currentTotalAmount;
+
+    var loopCounter = 0;
+    while(lastLeveragableAmount > 1) {
+        var newLeverage = lastLeveragableAmount * targetLeverageFactor;
+        leverageAmount += newLeverage;
+        lastLeveragableAmount = newLeverage;
+        loopCounter++;
+
+        if(loopCounter > 1000){
+            console.log("Loop counter max hit, abort loop");
+            break;
+        }
     }
 
-    return leverageSek;
+    return Math.round(leverageAmount);
+}
+
+function printToLabel(id, value, text) {
+    document.getElementById(id).innerHTML = text + ": " + value;
 }
 
 function calculateLeverage(){
-    alert("HEJ");
+    var targetLeverageAmount = calculateLeverageAmountForTargetLeverage();
+    printToLabel("targetLeverageAmountLabel", targetLeverageAmount, "Total belåning SEK");
+
+    var currentLeverageAmount = getCurrentLeverageAmountValue();
+    var amountToInvest = targetLeverageAmount - currentLeverageAmount;
+    printToLabel("amountToInvestLabel", amountToInvest, "Belopp att justera belåning med");
+
+    var currentTotalAmount = getCurrentTotalAmount();
+    var newTotalAmount = amountToInvest + currentTotalAmount;
+    printToLabel("newTotalAmountLabel", newTotalAmount, "Nytt totalbelopp");
+
+    return false;
 }
