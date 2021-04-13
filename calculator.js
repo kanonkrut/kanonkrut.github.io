@@ -69,23 +69,30 @@ function calculateLeverageAmountForTargetLeverage(totalAmount) {
     return Math.round(leverageAmount);
 }
 
+function formatSEK(value) {
+    var roundedValue = Math.round(value);
+
+    return new Intl.NumberFormat('sv-SE', { style: 'decimal', currency: 'SEK' }).format(roundedValue);
+}
+
+function formatDecimal(value) {
+    var roundedValue = Math.round(value * 100) / 100
+
+    return new Intl.NumberFormat('sv-SE', { style: 'decimal' }).format(roundedValue);
+}
+
 function printSekLabel(value, text) {
     var resultContainer = document.getElementById("resultContainer");
 
-    var roundedValue = Math.round(value);
-
-    var formatedValue = new Intl.NumberFormat('sv-SE', { style: 'decimal', currency: 'SEK' }).format(roundedValue);
+    var formatedValue = formatSEK(value);
 
     resultContainer.innerHTML += text + ": " + formatedValue + "<br/>";
 }
 
-
 function printDecimalLabel(value, text) {
     var resultContainer = document.getElementById("resultContainer");
 
-    var roundedValue = Math.round(value * 100) / 100
-
-    var formatedValue = new Intl.NumberFormat('sv-SE', { style: 'decimal' }).format(roundedValue);
+    var formatedValue = formatDecimal(value);
 
     resultContainer.innerHTML += text + ": " + formatedValue + "<br/>";
 }
@@ -150,6 +157,91 @@ function getRantaBasedOnTargetLeverage(targetLeverage) {
 
 function getRantaAsFactor(ranta) {
     return ranta / 100;
+}
+
+function getCell(content) {
+    return "<td>" + content + "</td>";
+}
+
+function printNedgangTable(totalBeloppMedSuperRanta, egetKapital, targetLeverage, targetLeverageAmount) {
+    var tableHtml = "<table class='table table-striped'>";
+    var nedgangList = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90];
+    var targetLeverageFactor = targetLeverage / 100;
+
+    tableHtml += "<thead><tr>";
+    tableHtml += getCell("Nedgång %");
+
+    for (var i = 0; i < nedgangList.length; i++) {
+        var nedgang = nedgangList[i];
+        tableHtml += getCell(nedgang);
+    }
+    tableHtml += "</tr></thead>";
+
+    tableHtml += "<tbody>";
+
+    tableHtml += "<tr>";
+    tableHtml += getCell("Belåningsgrad");
+
+    for (var i = 0; i < nedgangList.length; i++) {
+        var nedgang = nedgangList[i];
+        var nedgangFactor = 1 - nedgang / 100;
+        var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
+        var belaningsgradEfterNedgangFactor = targetLeverageAmount / beloppEfterNedgang;
+        var belaningsgradEfterNedgangPercent = formatSEK(belaningsgradEfterNedgangFactor * 100);
+
+        tableHtml += getCell(belaningsgradEfterNedgangPercent);
+    }
+    tableHtml += "</tr>";
+
+    tableHtml += "<tr>";
+    tableHtml += getCell("Belopp med superränta");
+
+    for (var i = 0; i < nedgangList.length; i++) {
+        var nedgang = nedgangList[i];
+        var nedgangFactor = 1 - nedgang / 100;
+        var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
+        var beloppEfterNedgangFormated = formatSEK(beloppEfterNedgang);
+
+        tableHtml += getCell(beloppEfterNedgangFormated);
+    }
+    tableHtml += "</tr>";
+
+    tableHtml += "<tr>";
+    tableHtml += getCell("Justering för att ha superränta");
+
+    for (var i = 0; i < nedgangList.length; i++) {
+        var nedgang = nedgangList[i];
+        var nedgangFactor = 1 - nedgang / 100;
+        var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
+        var beloppNeeded = totalBeloppMedSuperRanta * 0.5;
+        var diff = beloppNeeded - beloppEfterNedgang;
+        var diffFormated = formatSEK(diff);
+
+        tableHtml += getCell(diffFormated);
+    }
+    tableHtml += "</tr>";
+
+    
+    tableHtml += "<tr>";
+    tableHtml += getCell("Justering för att inte va överbelånad");
+
+    for (var i = 0; i < nedgangList.length; i++) {
+        var nedgang = nedgangList[i];
+        var nedgangFactor = 1 - nedgang / 100;
+        var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
+        var beloppNeeded = totalBeloppMedSuperRanta * 0.9;
+        var diff = beloppNeeded - beloppEfterNedgang;
+        var diffFormated = formatSEK(diff);
+        
+        tableHtml += getCell(diffFormated);
+    }
+    tableHtml += "</tr>";
+
+    tableHtml += "</tbody></table>";
+
+    var resultContainer = document.getElementById("resultContainer");
+    resultContainer.innerHTML += tableHtml + "<br/>";
+
 }
 
 function calculateLeverage() {
@@ -231,8 +323,14 @@ function calculateLeverage() {
 
     var avkastningTotal15 = newTotalAmount * 0.15;
 
+
+    printNewResultSection("Nedgång");
+    printNedgangTable(newTotalAmountSuperRanta, egetKapital, targetLeveragePercent, targetLeverageAmount);
+
+
     printNewResultSection("Översikt");
     printSekLabel(newTotalAmount, "Nytt totalbelopp");
+    printSekLabel(newTotalAmountSuperRanta, "Nytt totalbelopp med superräntan");
     printSekLabel(targetLeverageAmount, "Möjlig total belåning");
     printDecimalLabel(newLeverageMultiplier, "Möjlig hävstång");
     printSekLabel(egetKapital, "Eget kapital");
