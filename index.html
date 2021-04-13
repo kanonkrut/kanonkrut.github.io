@@ -9,34 +9,37 @@
 </head>
 
 <body>
+    <div class="container">
+        <h1>Leverage Calculator</h1>
 
-    <h1>Leverage Calculator</h1>
+        <div class="form-container">
+            <form onsubmit="return calculateLeverage();">
+                <div class="input-label">Nuvarande totalbelopp kr</div>
+                <input id="currentTotalAmountTbox" class="form-control" type="number" value="468000" />
 
-    <form onsubmit="return calculateLeverage();">
-        <div class="input-label">Nuvarande totalbelopp kr</div>
-        <input id="currentTotalAmountTbox" class="form-control" type="number" value="468000" />
+                <div class="input-label">Nuvarande belåning kr</div>
+                <input id="currentLeverageAmountTbox" class="form-control" type="number" value="70000" />
 
-        <div class="input-label">Nuvarande belåning kr</div>
-        <input id="currentLeverageAmountTbox" class="form-control" type="number" value="70000" />
+                <div class="input-label">Nuvarande gräns superräntan (Det är denna siffra som används för att beräkna
+                    belåningsgrad)</div>
+                <input id="currentSuperRantaTbox" class="form-control" type="number" value="172000" />
 
-        <div class="input-label">Nuvarande gräns superräntan (Det är denna siffra som används för att beräkna belåningsgrad)</div>
-        <input id="currentSuperRantaTbox" class="form-control" type="number" value="172000" />
+                <div class="input-label">Nuvarande gräns överbelånad kr</div>
+                <input id="currentOverLeveragedTbox" type="number" class="form-control" value="301000" />
 
-        <div class="input-label">Nuvarande gräns överbelånad kr</div>
-        <input id="currentOverLeveragedTbox" type="number" class="form-control" value="301000" />
+                <div class="input-label">Önskad belåningsgrad %</div>
+                <input id="targetLeverageTbox" type="number" class="form-control" value="30" />
 
-        <div class="input-label">Önskad belåningsgrad %</div>
-        <input id="targetLeverageTbox" type="number" class="form-control" value="30" />
+                <div class="input-label">Belåningsvärde nya värdepapper %</div>
+                <input id="leverageValueTbox" type="number" class="form-control" value="80" />
 
-        <div class="input-label">Belåningsvärde nya värdepapper %</div>
-        <input id="leverageValueTbox" type="number" class="form-control" value="80" />
-
-        <div style="margin-top: 10px;">
-            <button type="submit" class="btn btn-primary">Beräkna</button>
+                <div style="margin-top: 10px;">
+                    <button type="submit" class="btn btn-primary">Beräkna</button>
+                </div>
+            </form>
         </div>
-    </form>
-
-    <div id="resultContainer"></div>
+        <div id="resultContainer"></div>
+    </div>
 
     <script src="calculator.js" type="text/javascript"></script>
 

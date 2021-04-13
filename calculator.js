@@ -69,16 +69,37 @@ function calculateLeverageAmountForTargetLeverage(totalAmount) {
     return Math.round(leverageAmount);
 }
 
-function formatSEK(value) {
-    var roundedValue = Math.round(value);
+function getFormatOptionsDecimal(value) {
+    var formatOptions = {
+        style: 'decimal',
+    };
 
-    return new Intl.NumberFormat('sv-SE', { style: 'decimal', currency: 'SEK' }).format(roundedValue);
+    return formatOptions;
+}
+
+function roundSEK(value) {
+    if (value > 100 || value < -100) {
+        return Math.round(value / 100) * 100;
+    }
+
+    return Math.round(value);
+}
+
+function formatSEK(value) {
+    var roundedValue = roundSEK(value);
+
+    var formatOptions = getFormatOptionsDecimal(value);
+    formatOptions.currency = 'SEK';
+
+    return new Intl.NumberFormat('sv-SE', formatOptions).format(roundedValue);
 }
 
 function formatDecimal(value) {
     var roundedValue = Math.round(value * 100) / 100
 
-    return new Intl.NumberFormat('sv-SE', { style: 'decimal' }).format(roundedValue);
+    var formatOptions = getFormatOptionsDecimal(value);
+
+    return new Intl.NumberFormat('sv-SE', formatOptions).format(roundedValue);
 }
 
 function printSekLabel(value, text) {
@@ -159,14 +180,108 @@ function getRantaAsFactor(ranta) {
     return ranta / 100;
 }
 
-function getCell(content) {
-    return "<td>" + content + "</td>";
+function calculateArligRanta(targetLeverageAmount, rantaBasedOnTargetLeveragePercent) {
+    var rantaBasedOnTargetLeverageFactor = getRantaAsFactor(rantaBasedOnTargetLeveragePercent);
+    var yearlyInterestCost = targetLeverageAmount * rantaBasedOnTargetLeverageFactor;
+    return yearlyInterestCost;
 }
 
-function printNedgangTable(totalBeloppMedSuperRanta, egetKapital, targetLeverage, targetLeverageAmount) {
+function getCell(content, style) {
+    var styleHtml = "";
+    if (style) {
+        styleHtml = " style='" + style + "'";
+    }
+    return "<td" + styleHtml + ">" + content + "</td>";
+}
+
+function getDistanceToBelaningGrad(totalBeloppMedSuperRanta, targetLeverageAmount, nedgangFactor, belaningsGransFactor) {
+    var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
+    var maxBelaningGrans = beloppEfterNedgang * belaningsGransFactor;
+    return targetLeverageAmount - maxBelaningGrans;
+}
+
+function getNedgangFactor(nedgang) {
+    var nedgangFactor = 1 - nedgang / 100;
+    return nedgangFactor;
+}
+
+function getNedgangCellStyle(value) {
+    if (value < 0) {
+        return "color: #ccc;";
+    }
+    return null;
+}
+
+function generateDistanceRowHtml(nedgangList, belaningsgradFactor, totalBeloppMedSuperRanta, targetLeverageAmount) {
+    var tableHtml = "<tr>";
+    var belaningsgradPercent = belaningsgradFactor * 100;
+    tableHtml += getCell("Distans till " + belaningsgradPercent + " %", "white-space: nowrap;");
+
+    for (var i = 0; i < nedgangList.length; i++) {
+        var nedgang = nedgangList[i];
+        var nedgangFactor = getNedgangFactor(nedgang);
+        var distance = getDistanceToBelaningGrad(totalBeloppMedSuperRanta, targetLeverageAmount, nedgangFactor, belaningsgradFactor);
+        var distanceFormated = formatSEK(distance);
+
+        var style = getNedgangCellStyle(distance);
+
+        tableHtml += getCell(distanceFormated, style);
+    }
+    tableHtml += "</tr>";
+    return tableHtml;
+}
+
+function getBreakEvenNumberOfYears(forvantadAvkastningFactor, leverageAmount, breakEvenAmount, rantaBasedOnTargetLeverage) {
+    var avkastningSEK = 0;
+    var antalAr = 0;
+    var yearlyInterestCost = calculateArligRanta(leverageAmount, rantaBasedOnTargetLeverage);
+
+    while (avkastningSEK < breakEvenAmount) {
+        var amountWithRantaPaRanta = leverageAmount + avkastningSEK;
+        avkastningSEK += amountWithRantaPaRanta * forvantadAvkastningFactor;
+        avkastningSEK -= yearlyInterestCost;
+
+        antalAr++;
+        if (antalAr > 10000) {
+            alert("break getBreakEvenNumberOfYears, more than 10000 loopcount");
+            break;
+        }
+    }
+
+    return antalAr;
+}
+
+function generateBreakEvenRowHtml(
+    nedgangList,
+    totalBeloppMedSuperRanta,
+    targetLeverageAmount,
+    rantaBasedOnTargetLeverage,
+    maxBelaningsgradFactor,
+    forvantadAvkastningFactor) {
+
+    var tableHtml = "<tr>";
+    var maxBelaningsgradPercent = maxBelaningsgradFactor * 100;
+    var forvantadAvkastningPercent = forvantadAvkastningFactor * 100;
+    tableHtml += getCell("År " + forvantadAvkastningPercent + "% avkast. tills breakeven " + maxBelaningsgradPercent + "% belåninggrad");
+
+    for (var i = 0; i < nedgangList.length; i++) {
+        var nedgang = nedgangList[i];
+        var nedgangFactor = getNedgangFactor(nedgang);
+        var distance = getDistanceToBelaningGrad(totalBeloppMedSuperRanta, targetLeverageAmount, nedgangFactor, maxBelaningsgradFactor);
+        var antalArTillBreakEven = getBreakEvenNumberOfYears(forvantadAvkastningFactor, targetLeverageAmount, distance, rantaBasedOnTargetLeverage);
+        if (antalArTillBreakEven <= 0) {
+            antalArTillBreakEven = "";
+        }
+        tableHtml += getCell(antalArTillBreakEven);
+    }
+    tableHtml += "</tr>";
+
+    return tableHtml;
+}
+
+function printNedgangTable(totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage) {
     var tableHtml = "<table class='table table-striped'>";
     var nedgangList = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90];
-    var targetLeverageFactor = targetLeverage / 100;
 
     tableHtml += "<thead><tr>";
     tableHtml += getCell("Nedgång %");
@@ -194,11 +309,11 @@ function printNedgangTable(totalBeloppMedSuperRanta, egetKapital, targetLeverage
     tableHtml += "</tr>";
 
     tableHtml += "<tr>";
-    tableHtml += getCell("Belopp med superränta");
+    tableHtml += getCell("Belopp superränta", "white-space: nowrap;");
 
     for (var i = 0; i < nedgangList.length; i++) {
         var nedgang = nedgangList[i];
-        var nedgangFactor = 1 - nedgang / 100;
+        var nedgangFactor = getNedgangFactor(nedgang);
         var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
         var beloppEfterNedgangFormated = formatSEK(beloppEfterNedgang);
 
@@ -206,42 +321,28 @@ function printNedgangTable(totalBeloppMedSuperRanta, egetKapital, targetLeverage
     }
     tableHtml += "</tr>";
 
-    tableHtml += "<tr>";
-    tableHtml += getCell("Justering för att ha superränta");
+    tableHtml += generateDistanceRowHtml(nedgangList, 0.1, totalBeloppMedSuperRanta, targetLeverageAmount);
+    tableHtml += generateDistanceRowHtml(nedgangList, 0.25, totalBeloppMedSuperRanta, targetLeverageAmount);
+    tableHtml += generateDistanceRowHtml(nedgangList, 0.5, totalBeloppMedSuperRanta, targetLeverageAmount);
+    tableHtml += generateDistanceRowHtml(nedgangList, 0.6, totalBeloppMedSuperRanta, targetLeverageAmount);
+    tableHtml += generateDistanceRowHtml(nedgangList, 0.7, totalBeloppMedSuperRanta, targetLeverageAmount);
+    tableHtml += generateDistanceRowHtml(nedgangList, 0.8, totalBeloppMedSuperRanta, targetLeverageAmount);
+    tableHtml += generateDistanceRowHtml(nedgangList, 0.9, totalBeloppMedSuperRanta, targetLeverageAmount);
 
-    for (var i = 0; i < nedgangList.length; i++) {
-        var nedgang = nedgangList[i];
-        var nedgangFactor = 1 - nedgang / 100;
-        var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
-        var beloppNeeded = totalBeloppMedSuperRanta * 0.5;
-        var diff = beloppNeeded - beloppEfterNedgang;
-        var diffFormated = formatSEK(diff);
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.5, 0.05);
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.5, 0.08);
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.5, 0.1);
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.5, 0.15);
 
-        tableHtml += getCell(diffFormated);
-    }
-    tableHtml += "</tr>";
-
-    
-    tableHtml += "<tr>";
-    tableHtml += getCell("Justering för att inte va överbelånad");
-
-    for (var i = 0; i < nedgangList.length; i++) {
-        var nedgang = nedgangList[i];
-        var nedgangFactor = 1 - nedgang / 100;
-        var beloppEfterNedgang = totalBeloppMedSuperRanta * nedgangFactor;
-        var beloppNeeded = totalBeloppMedSuperRanta * 0.9;
-        var diff = beloppNeeded - beloppEfterNedgang;
-        var diffFormated = formatSEK(diff);
-        
-        tableHtml += getCell(diffFormated);
-    }
-    tableHtml += "</tr>";
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.9, 0.05);
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.9, 0.08);
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.9, 0.1);
+    tableHtml += generateBreakEvenRowHtml(nedgangList, totalBeloppMedSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage, 0.9, 0.15);
 
     tableHtml += "</tbody></table>";
 
     var resultContainer = document.getElementById("resultContainer");
     resultContainer.innerHTML += tableHtml + "<br/>";
-
 }
 
 function calculateLeverage() {
@@ -297,9 +398,7 @@ function calculateLeverage() {
 
     var rantaBasedOnTargetLeverage = getRantaBasedOnTargetLeverage(targetLeveragePercent);
 
-    var rantaBasedOnTargetLeverageFactor = getRantaAsFactor(rantaBasedOnTargetLeverage);
-
-    var yearlyInterestCost = targetLeverageAmount * rantaBasedOnTargetLeverageFactor;
+    var yearlyInterestCost = calculateArligRanta(targetLeverageAmount, rantaBasedOnTargetLeverage);
 
     var yearlyInterestCostAfterDeduction = yearlyInterestCost * 0.7;
 
@@ -323,15 +422,11 @@ function calculateLeverage() {
 
     var avkastningTotal15 = newTotalAmount * 0.15;
 
-
-    printNewResultSection("Nedgång");
-    printNedgangTable(newTotalAmountSuperRanta, egetKapital, targetLeveragePercent, targetLeverageAmount);
-
-
     printNewResultSection("Översikt");
     printSekLabel(newTotalAmount, "Nytt totalbelopp");
     printSekLabel(newTotalAmountSuperRanta, "Nytt totalbelopp med superräntan");
     printSekLabel(targetLeverageAmount, "Möjlig total belåning");
+    printSekLabel(targetLeveragePercent, "Möjlig Belåning %");
     printDecimalLabel(newLeverageMultiplier, "Möjlig hävstång");
     printSekLabel(egetKapital, "Eget kapital");
     printSekLabel(amountToInvest, "Belopp att justera belåning med");
@@ -381,6 +476,12 @@ function calculateLeverage() {
     printSekLabel(avkastningBelaning15, "Vid 15% belåning");
     printSekLabel(avkastningEgetKapital15, "Vid 15% utan belåning");
     printSekLabel(avkastningTotal15, "Vid 15% totalt");
+
+    printSekLabel(0, "Här kanske jag kan lägga hur mkt extra avkastning man får på 10, 20, 30 år. Kan man få som graf?");
+    
+
+    printNewResultSection("Simuleringar nedgång");
+    printNedgangTable(newTotalAmountSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage);
 
     return false;
 }
