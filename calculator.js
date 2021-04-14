@@ -24,16 +24,8 @@ function getCurrentSuperRanta() {
     return getInputValueAsNumber("currentSuperRantaTbox");
 }
 
-function getCurrentOverLeveraged() {
-    return getInputValueAsNumber("currentOverLeveragedTbox");
-}
-
 function getTargetLeverage() {
     return getInputValueAsNumber("targetLeverageTbox");
-}
-
-function getLeverageValue() {
-    return getInputValueAsNumber("leverageValueTbox");
 }
 
 function getCurrentLeverageAmountValue() {
@@ -231,6 +223,19 @@ function generateDistanceRowHtml(nedgangList, belaningsgradFactor, totalBeloppMe
     return tableHtml;
 }
 
+function calculateRantaPaRantaBelopp(targetAntalAr, forvantadAvkastningFactor, investedAmount, leverageAmount, rantaBasedOnTargetLeverage) {
+    var avkastningSEK = 0;
+    var yearlyInterestCost = calculateArligRanta(leverageAmount, rantaBasedOnTargetLeverage);
+
+    for (var ar = 0; ar < targetAntalAr; ar++) {
+        var amountWithRantaPaRanta = investedAmount + avkastningSEK;
+        avkastningSEK += amountWithRantaPaRanta * forvantadAvkastningFactor;
+        avkastningSEK -= yearlyInterestCost;
+    }
+
+    return avkastningSEK;
+}
+
 function getBreakEvenNumberOfYears(forvantadAvkastningFactor, leverageAmount, breakEvenAmount, rantaBasedOnTargetLeverage) {
     var avkastningSEK = 0;
     var antalAr = 0;
@@ -422,6 +427,22 @@ function calculateLeverage() {
 
     var avkastningTotal15 = newTotalAmount * 0.15;
 
+    var rantaPaRanta5YearLeverage = calculateRantaPaRantaBelopp(5, 0.1, targetLeverageAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
+    var rantaPaRanta10YearLeverage = calculateRantaPaRantaBelopp(10, 0.1, targetLeverageAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
+    var rantaPaRanta20YearLeverage = calculateRantaPaRantaBelopp(20, 0.1, targetLeverageAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
+    var rantaPaRanta30YearLeverage = calculateRantaPaRantaBelopp(30, 0.1, targetLeverageAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
+    var rantaPaRanta5YearTotal = calculateRantaPaRantaBelopp(5, 0.1, newTotalAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
+    var rantaPaRanta10YearTotal = calculateRantaPaRantaBelopp(10, 0.1, newTotalAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
+    var rantaPaRanta20YearTotal = calculateRantaPaRantaBelopp(20, 0.1, newTotalAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
+    var rantaPaRanta30YearTotal = calculateRantaPaRantaBelopp(30, 0.1, newTotalAmount, targetLeverageAmount, rantaBasedOnTargetLeverage);
+
     printNewResultSection("Översikt");
     printSekLabel(newTotalAmount, "Nytt totalbelopp");
     printSekLabel(newTotalAmountSuperRanta, "Nytt totalbelopp med superräntan");
@@ -452,10 +473,6 @@ function calculateLeverage() {
     printSekLabel(diffTotalAmountSuperRanta, "Diff");
     printNewRow();
 
-    printSekLabel(0, "Nytt tak " + ordinarieInterest + "% ränta");
-    printSekLabel(0, "Nuvarande tak " + ordinarieInterest + "% ränta");
-    printSekLabel(0, "Diff");
-
     printNewResultSection("Kostnader");
     printDecimalLabel(rantaBasedOnTargetLeverage, "Ränta %");
     printSekLabel(yearlyInterestCost, "Räntekostnad per år");
@@ -476,14 +493,21 @@ function calculateLeverage() {
     printSekLabel(avkastningBelaning15, "Vid 15% belåning");
     printSekLabel(avkastningEgetKapital15, "Vid 15% utan belåning");
     printSekLabel(avkastningTotal15, "Vid 15% totalt");
-
-    printSekLabel(0, "Här kanske jag kan lägga hur mkt extra avkastning man får på 10, 20, 30 år. Kan man få som graf?");
+    printNewRow();
     
+    printSekLabel(rantaPaRanta5YearLeverage, "Avkastning 5 år med 10% belåningbelopp");
+    printSekLabel(rantaPaRanta10YearLeverage, "Avkastning 10 år med 10% belåningbelopp");
+    printSekLabel(rantaPaRanta20YearLeverage, "Avkastning 20 år med 10% belåningbelopp");
+    printSekLabel(rantaPaRanta30YearLeverage, "Avkastning 30 år med 10% belåningbelopp");
+    printNewRow();
+
+    printSekLabel(rantaPaRanta5YearTotal, "Avkastning 5 år med 10% totalbelopp");
+    printSekLabel(rantaPaRanta10YearTotal, "Avkastning 10 år med 10% totalbelopp");
+    printSekLabel(rantaPaRanta20YearTotal, "Avkastning 20 år med 10% totalbelopp");
+    printSekLabel(rantaPaRanta30YearTotal, "Avkastning 30 år med 10% totalbelopp");
 
     printNewResultSection("Simuleringar nedgång");
     printNedgangTable(newTotalAmountSuperRanta, targetLeverageAmount, rantaBasedOnTargetLeverage);
 
     return false;
 }
-
-calculateLeverage();
