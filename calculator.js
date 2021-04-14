@@ -447,7 +447,6 @@ function calculateLeverage() {
     printSekLabel(newTotalAmount, "Nytt totalbelopp");
     printSekLabel(newTotalAmountSuperRanta, "Nytt totalbelopp med superräntan");
     printSekLabel(targetLeverageAmount, "Möjlig total belåning");
-    printSekLabel(targetLeveragePercent, "Möjlig Belåning %");
     printDecimalLabel(newLeverageMultiplier, "Möjlig hävstång");
     printSekLabel(egetKapital, "Eget kapital");
     printSekLabel(amountToInvest, "Belopp att justera belåning med");

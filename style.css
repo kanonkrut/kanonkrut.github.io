@@ -10,3 +10,15 @@ h2 {
 .form-container {
     max-width: 240px;
 }
+
+.btn-primary {
+    background-color: #00c281;
+    border-color: #00c281;
+}
+
+
+.btn-primary:focus, .btn-primary:hover, .btn-primary:active, .btn-primary:active:focus {
+    background-color: #00A870;
+    border-color: #00A870;
+    box-shadow: none;
+}
